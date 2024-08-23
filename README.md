@@ -12,15 +12,15 @@ To use add the repository for the plugin inside your `settings.gradle`:
 
 ```groovy
 pluginManagement {
-	repositories {
-		...
-		mavenCentral()
-		gradlePluginPortal()
-		maven {
-			name = "3arthMaven"
-			url = "https://3arthqu4ke.github.io/maven"
-		}
+    repositories {
+	// ...
+	mavenCentral()
+	gradlePluginPortal()
+	maven {
+	    name = "3arthMaven"
+	    url = "https://3arthqu4ke.github.io/maven"
 	}
+    }
 }
 ```
 
@@ -33,16 +33,16 @@ plugins {
 
 tasks.register('runWithHeadlessMc', HeadlessMcRunTask) {
     // copy your release jar to the modsDirectory
-	from(remapJar)
+    from(remapJar)
     // Fabric API too, if you need it
-	from(configurations.modImplementation) {
-		include("*fabric-api-${fabric_version}.jar")
-	}
-	into(modsDirectory)
+    from(configurations.modImplementation) {
+	include("*fabric-api-${fabric_version}.jar")
+    }
+    into(modsDirectory)
 
-	version = '1.21'
-	modlauncher = Modlauncher.FABRIC
-	modLoaderVersion = '0.15.11' // optional
+    version = '1.21'
+    modlauncher = Modlauncher.FABRIC
+    modLoaderVersion = '0.15.11' // optional
     // other options
 }
 ```
