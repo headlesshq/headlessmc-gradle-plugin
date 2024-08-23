@@ -1,0 +1,22 @@
+pluginManagement {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		mavenCentral()
+		gradlePluginPortal()
+		maven {
+			name = "ossrh" // for MinecraftAuth SNAPSHOTS, TODO: PLEASE RELEASE ON MAVENCENTRAL!
+			url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+		}
+
+		maven {
+			name = "3arthMaven"
+			url = "https://3arthqu4ke.github.io/maven"
+		}
+	}
+}
+
+// use HeadlessMc plugin directly provided by super project
+includeBuild('../../')
