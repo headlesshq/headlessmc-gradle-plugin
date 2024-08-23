@@ -19,9 +19,6 @@ jobs:
       - name: Build
         run: ./gradlew dokkaHtml --stacktrace
 
-      - name: Create site dir
-        run: mkdir _site
-
       - name: Copy javadoc
         run: cp -r build/dokka/html _site/
 
