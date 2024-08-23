@@ -3,7 +3,7 @@
 Adds a gradle task for running Minecraft with the [HeadlessMc](https://github.com/3arthqu4ke/headlessmc) launcher.
 Similarly to mc-runtime-test the idea is that your usual gradle run task
 works very differently from how a user will actually launch the game.
-Many problems like the packaging of your release jar, mixin- issues
+Many problems like the packaging of your release jar, mixin-issues
 or mapping issues can only be detected by launching the game with a "real" launcher.
 With this task you can use your release jar to run the game.
 
