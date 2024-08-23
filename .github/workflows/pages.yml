@@ -23,7 +23,7 @@ jobs:
         run: mkdir _site
 
       - name: Copy javadoc
-        run: cp -r build/dokka/html/ _site/
+        run: cp -r build/dokka/html _site/
 
       - name: Upload Web page artifact
         uses: actions/upload-pages-artifact@v3.0.1
