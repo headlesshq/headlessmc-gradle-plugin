@@ -2,11 +2,13 @@ name: Publish artifact to github packages
 
 on:
   workflow_dispatch:
-  release:
-    types: [ created ]
-  push:
-    tags:
-      - '**'
+  # publishing gradle plugins on github packages does not work,
+  # probably due to their unique structure as a maven artifact?
+  #release:
+  #  types: [ created ]
+  #push:
+  #  tags:
+  #    - '**'
 
 jobs:
   build:

@@ -6,7 +6,7 @@ import me.earth.headlessmc.launcher.auth.AccountManager
 import me.earth.headlessmc.launcher.download.ChecksumService
 import me.earth.headlessmc.launcher.download.DownloadService
 import me.earth.headlessmc.launcher.files.ConfigService
-import me.earth.headlessmc.launcher.files.FileManager
+import me.earth.headlessmc.launcher.files.LauncherConfig
 import me.earth.headlessmc.launcher.java.JavaService
 import me.earth.headlessmc.launcher.launch.ProcessFactory
 import me.earth.headlessmc.launcher.plugin.PluginManager
@@ -19,13 +19,27 @@ import me.earth.headlessmc.launcher.version.VersionService
  * @author 3arthqu4ke
  */
 internal class GradleLauncher(
-    headlessMc: HeadlessMc, versionService: VersionService, mcFiles: FileManager,
-    gameDir: FileManager, sha1Service: ChecksumService, downloadService: DownloadService,
-    fileManager: FileManager, processFactory: ProcessFactory, configService: ConfigService,
-    javaService: JavaService, accountManager: AccountManager,
-    versionSpecificModManager: VersionSpecificModManager, pluginManager: PluginManager
+    headlessMc: HeadlessMc,
+    versionService: VersionService,
+    launcherConfig: LauncherConfig,
+    sha1Service: ChecksumService,
+    downloadService: DownloadService,
+    processFactory: ProcessFactory,
+    configService: ConfigService,
+    javaService: JavaService,
+    accountManager: AccountManager,
+    versionSpecificModManager: VersionSpecificModManager,
+    pluginManager: PluginManager
 ) : Launcher(
-    headlessMc, versionService,
-    mcFiles, gameDir, sha1Service, downloadService, fileManager, processFactory, configService, javaService,
-    accountManager, versionSpecificModManager, pluginManager
+    headlessMc,
+    versionService,
+    launcherConfig,
+    sha1Service,
+    downloadService,
+    processFactory,
+    configService,
+    javaService,
+    accountManager,
+    versionSpecificModManager,
+    pluginManager
 )

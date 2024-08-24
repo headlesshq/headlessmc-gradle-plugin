@@ -88,6 +88,14 @@ tasks.register('runWithHeadlessMc', HeadlessMcRunTask) {
 	commands += "help"
 }
 
+tasks.register('neoforgeRunWithHeadlessMc', HeadlessMcRunTask) {
+	from(remapJar)
+	into(modsDirectory)
+
+	version = '1.21'
+	modlauncher = Modlauncher.NEOFORGE
+}
+
 // configure the maven publication
 publishing {
 	publications {

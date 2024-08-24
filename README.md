@@ -7,7 +7,7 @@ Many problems like the packaging of your release jar, mixin-issues
 or mapping issues can only be detected by launching the game with a "real" launcher.
 With this task you can use your release jar to run the game.
 
-The project is still in early development and mostly just for fun.
+The project is still in early development.
 To use add the repository for the plugin inside your `settings.gradle`:
 
 ```groovy
@@ -28,7 +28,7 @@ Then add the plugin and a `HeadlessMcRunTask` to your `build.gradle`:
 
 ```groovy
 plugins {
-    id 'io.github.headlesshq.headlessmc-gradle-plugin' version '0.1.0'
+    id 'io.github.headlesshq.headlessmc-gradle-plugin' version '0.2.0'
 }
 
 tasks.register('runWithHeadlessMc', HeadlessMcRunTask) {

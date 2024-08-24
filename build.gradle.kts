@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.headlesshq"
-version = "0.1.0"
+version = "0.2.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -28,8 +28,8 @@ repositories {
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation("me.earth.headlessmc:headlessmc-launcher:2.1.0-SNAPSHOT")
-    implementation("me.earth.headlessmc:headlessmc-jline:2.1.0-SNAPSHOT")
+    implementation("me.earth.headlessmc:headlessmc-launcher:2.1.0")
+    implementation("me.earth.headlessmc:headlessmc-jline:2.1.0")
 }
 
 tasks.test {

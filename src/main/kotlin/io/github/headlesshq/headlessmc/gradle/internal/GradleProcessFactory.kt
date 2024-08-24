@@ -5,6 +5,7 @@ import me.earth.headlessmc.api.config.HasConfig
 import me.earth.headlessmc.jline.JLineProperties
 import me.earth.headlessmc.launcher.download.DownloadService
 import me.earth.headlessmc.launcher.files.FileManager
+import me.earth.headlessmc.launcher.files.LauncherConfig
 import me.earth.headlessmc.launcher.launch.JavaLaunchCommandBuilder
 import me.earth.headlessmc.launcher.launch.LaunchOptions
 import me.earth.headlessmc.launcher.launch.ProcessFactory
@@ -18,10 +19,9 @@ import java.util.concurrent.Executors
 class GradleProcessFactory(
     private val runTask: HeadlessMcRunTask,
     downloadService: DownloadService,
-    files: FileManager,
-    config: HasConfig,
+    launcherConfig: LauncherConfig,
     os: OS
-): ProcessFactory(downloadService, files, config, os) {
+): ProcessFactory(downloadService, launcherConfig, os) {
     override fun configureCommandBuilder(
         options: LaunchOptions,
         version: Version,

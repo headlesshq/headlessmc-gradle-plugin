@@ -6,6 +6,7 @@ import me.earth.headlessmc.jline.JLineProperties
 import me.earth.headlessmc.launcher.java.Java
 import me.earth.headlessmc.launcher.modlauncher.Modlauncher
 import me.earth.headlessmc.launcher.version.Version
+import me.earth.headlessmc.launcher.version.family.FamilyUtil
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Provider
@@ -15,6 +16,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.work.DisableCachingByDefault
 import java.util.*
+import java.util.stream.Collectors.joining
 
 /**
  * Runs Minecraft with the HeadlessMc launcher.
@@ -192,7 +194,9 @@ abstract class HeadlessMcRunTask: Copy() {
             launcher.commandLine.commandContext.execute(installCommand)
             versionToLaunch = findVersionToLaunch(launcher)
             if (versionToLaunch == null) {
-                throw IllegalStateException("Executed '${modlauncher.officialName} $version' but version has not been installed")
+                throw IllegalStateException(
+                    "Executed '${modlauncher.officialName} $version' but version has not been installed. Available: "
+                        + launcher.versionService.stream().map { v -> v.name }.collect(joining(", ")))
             }
         }
 
@@ -201,7 +205,7 @@ abstract class HeadlessMcRunTask: Copy() {
 
     private fun findVersionToLaunch(launcher: GradleLauncher): Version? {
         return launcher.versionService.stream().filter {
-            it.name.contains(version!!)
+            (it.name.contains(version!!) || FamilyUtil.getOldestParent(it).name.contains(version!!))
                     && it.name.lowercase(Locale.ENGLISH).contains(modlauncher.officialName)
                     && (modLoaderVersion == null || (it.name.contains(modLoaderVersion!!))) }
             .findFirst().orElse(null)
