@@ -46,3 +46,7 @@ tasks.register('runWithHeadlessMc', HeadlessMcRunTask) {
     // other options
 }
 ```
+
+As an example you can find a project 
+that uses this task extensively for CI testing with mc-runtime-test
+[here](https://github.com/3arthqu4ke/hmc-optimizations/blob/main/.github/workflows/run-matrix.yml).
