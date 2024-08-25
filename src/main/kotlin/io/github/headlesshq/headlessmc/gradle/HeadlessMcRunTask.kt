@@ -2,6 +2,7 @@ package io.github.headlesshq.headlessmc.gradle
 
 import io.github.headlesshq.headlessmc.gradle.internal.GradleLauncher
 import io.github.headlesshq.headlessmc.gradle.internal.GradleLauncherBuilder
+import me.earth.headlessmc.api.config.Property
 import me.earth.headlessmc.jline.JLineProperties
 import me.earth.headlessmc.launcher.java.Java
 import me.earth.headlessmc.launcher.modlauncher.Modlauncher
@@ -17,6 +18,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.work.DisableCachingByDefault
 import java.util.*
 import java.util.stream.Collectors.joining
+import kotlin.collections.HashMap
 
 /**
  * Runs Minecraft with the HeadlessMc launcher.
@@ -76,6 +78,27 @@ abstract class HeadlessMcRunTask: Copy() {
      */
     @Input
     var lwjgl: Boolean = false
+
+    /**
+     * If you want HeadlessMc to use dummy assets.
+     * Useful when running headless, lets you run the game without downloading megabytes of assets.
+     */
+    @Input
+    var dummyAssets: Boolean = false
+
+    /**
+     * If you want HeadlessMc to use dummy assets.
+     * Useful when running headless, lets you run the game without downloading megabytes of assets.
+     */
+    @Input
+    var rethrowLaunchExceptions: Boolean = true
+
+    /**
+     * Allows you to override properties from HeadlessMcs config.
+     */
+    @get:Input
+    @get:Optional
+    var launcherConfig: MutableMap<String, String> = HashMap()
 
     /**
      * Commands in HeadlessMc to execute before launching.

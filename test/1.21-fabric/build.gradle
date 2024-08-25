@@ -1,4 +1,5 @@
 import io.github.headlesshq.headlessmc.gradle.HeadlessMcRunTask
+import me.earth.headlessmc.launcher.LauncherProperties
 import me.earth.headlessmc.launcher.modlauncher.Modlauncher
 
 plugins {
@@ -85,6 +86,8 @@ tasks.register('runWithHeadlessMc', HeadlessMcRunTask) {
 	modLoaderVersion = '0.15.11'
 	specifics = true
 	lwjgl = false
+	launcherConfig[LauncherProperties.ALWAYS_DOWNLOAD_ASSETS_INDEX.getName()] = "false"
+	dummyAssets = true
 	commands += "help"
 }
 
