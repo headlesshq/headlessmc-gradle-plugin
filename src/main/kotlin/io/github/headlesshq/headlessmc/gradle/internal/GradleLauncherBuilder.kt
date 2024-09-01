@@ -42,7 +42,7 @@ internal class GradleLauncherBuilder(private val task: HeadlessMcRunTask) : Laun
         }
 
         if (launcherConfig() == null) {
-            val mcFiles =FileManager.mkdir(task.mcDirectory.asFile.get().path)
+            val mcFiles = FileManager.mkdir(task.mcDirectory.asFile.get().path)
             val gameDir = FileManager.mkdir(task.gameDirectory.asFile.get().path)
             launcherConfig(LauncherConfig(
                 requireNonNull(configService(), "ConfigHolder was null!"),

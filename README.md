@@ -28,7 +28,7 @@ Then add the plugin and a `HeadlessMcRunTask` to your `build.gradle`:
 
 ```groovy
 plugins {
-    id 'io.github.headlesshq.headlessmc-gradle-plugin' version '0.3.0'
+    id 'io.github.headlesshq.headlessmc-gradle-plugin' version '0.4.0'
 }
 
 tasks.register('runWithHeadlessMc', HeadlessMcRunTask) {

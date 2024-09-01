@@ -10,7 +10,7 @@ import org.gradle.api.Project
  * @author 3arthqu4ke
  */
 class HeadlessMcPlugin: Plugin<Project> {
-    private val pluginVersion: String = "0.3.0"
+    private val pluginVersion: String = "0.4.0"
 
     override fun apply(project: Project) {
         project.logger.lifecycle("[HeadlessMc] Plugin Version: $pluginVersion, HeadlessMc version: ${Launcher.VERSION}")
