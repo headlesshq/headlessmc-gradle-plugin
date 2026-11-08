@@ -4,6 +4,7 @@ import groovy.lang.Closure
 import io.github.headlesshq.headlessmc.gradle.internal.Args
 import io.github.headlesshq.headlessmc.gradle.internal.LaunchArgs
 import io.github.headlesshq.headlessmc.gradle.internal.MinecraftOptions
+import io.github.headlesshq.headlessmc.gradle.internal.ProjectScope
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Transformer
@@ -184,7 +185,9 @@ abstract class HeadlessMcRunTask : AbstractHeadlessMcTask(), CopySourceSpec {
 
     /**
      * If the destination directory is emptied before copying, so old versions of a mod do not remain.
-     * True by default.
+     * True by default. To not delete anything by accident, the destination has to be a directory inside the
+     * [runDirectory], [gameDirectory], [mcDirectory] or [launcherDirectory] then, otherwise the task fails
+     * and you have to set this to false.
      */
     @get:Input
     abstract val cleanDestination: Property<Boolean>
@@ -204,13 +207,17 @@ abstract class HeadlessMcRunTask : AbstractHeadlessMcTask(), CopySourceSpec {
 
     /**
      * The directory the game runs in. For the client this is the [gameDirectory],
-     * for servers HeadlessMc uses a directory in `<launcherDirectory>/server`.
+     * for servers HeadlessMc uses a directory in `<launcherDirectory>/server`,
+     * which is unknown (the provider is empty) for servers without [minecraftVersion].
      */
     @get:Internal
     val runDirectory: Provider<Directory>
         get() = server.flatMap { server ->
             if (server) {
-                launcherDirectory.dir("server").map { it.dir(toLaunchArgs().serverDirectoryName()) }
+                // empty without minecraftVersion, HeadlessMc picks the directory then
+                launcherDirectory.dir("server").flatMap { dir ->
+                    minecraftVersion.map { dir.dir(toLaunchArgs().serverDirectoryName()) }
+                }
             } else {
                 gameDirectory
             }
@@ -415,6 +422,13 @@ abstract class HeadlessMcRunTask : AbstractHeadlessMcTask(), CopySourceSpec {
         }
 
         val scope = checkScope()
+        if (!source.isEmpty && !destinationDirectory.isPresent) {
+            throw GradleException(
+                "Set destinationDirectory (into(...)) on $path: the default, the mods directory of the run " +
+                    "directory, is unknown when using launchArgs without minecraftVersion and with server.",
+            )
+        }
+
         val destination = if (source.isEmpty) {
             null
         } else {
@@ -424,6 +438,7 @@ abstract class HeadlessMcRunTask : AbstractHeadlessMcTask(), CopySourceSpec {
         val runDirectory = if (minecraftVersion.isPresent) runDirectory.get().asFile else null
         runDirectory?.let { scope.check("runDirectory", it) }
 
+        destination?.let { checkCleanable(scope, it) }
         syncPlugins()
         destination?.let { copyFiles(it) }
         if (runDirectory != null && minecraftOptions.get().isNotEmpty()) {
@@ -445,6 +460,27 @@ abstract class HeadlessMcRunTask : AbstractHeadlessMcTask(), CopySourceSpec {
 
         val args = this.launchArgs.get()
         runHeadlessMc(args.ifEmpty { launchArgs!!.toArgs() })
+    }
+
+    /**
+     * Refuses to empty directories that are not owned by HeadlessMc, e.g. `src`.
+     */
+    private fun checkCleanable(scope: ProjectScope, destination: File) {
+        if (!cleanDestination.get() || !destination.isDirectory) {
+            return
+        }
+
+        val target = scope.check("destinationDirectory", destination)
+        val owned = listOfNotNull(
+            launcherDirectory.orNull, mcDirectory.orNull, gameDirectory.orNull, runDirectory.orNull,
+        ).map { scope.check("directory", it.asFile) }
+        if (owned.none { target != it && target.startsWith(it) }) {
+            throw GradleException(
+                "Refusing to delete the contents of $target before copying on $path: it is not inside a " +
+                    "directory of HeadlessMc (${owned.joinToString()}). " +
+                    "Set cleanDestination = false to copy into it without deleting anything.",
+            )
+        }
     }
 
     private fun copyFiles(destination: File) {

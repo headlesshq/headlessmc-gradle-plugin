@@ -143,6 +143,32 @@ class HeadlessMcRunTaskTest extends FunctionalTestBase {
     }
 
     @Test
+    void refusesToCleanDirectoriesOutsideOfHeadlessMc() {
+        write("src/Main.java", "class Main {}");
+        write("mods/a.jar", "a");
+        groovyBuild("tasks.register('runClient', HeadlessMcRunTask) {\n"
+            + "    from('mods')\n"
+            + "    into('src')\n"
+            + "    minecraftVersion = '1.21.4'\n"
+            + "}\n");
+        BuildResult result = buildAndFail("runClient");
+        assertTrue(result.getOutput().contains("cleanDestination"), result.getOutput());
+        assertTrue(Files.isRegularFile(file("src/Main.java")));
+    }
+
+    @Test
+    void serverWithLaunchArgsNeedsADestination() {
+        write("mods/a.jar", "a");
+        groovyBuild("tasks.register('runServer', HeadlessMcRunTask) {\n"
+            + "    from('mods')\n"
+            + "    server = true\n"
+            + "    launchArgs = ['launch', '--server', 'paper', '1.21.4']\n"
+            + "}\n");
+        BuildResult result = buildAndFail("runServer");
+        assertTrue(result.getOutput().contains("Set destinationDirectory"), result.getOutput());
+    }
+
+    @Test
     void launchArgsOverride() {
         groovyBuild("tasks.register('runPack', HeadlessMcRunTask) {\n"
             + "    launchArgs = ['launch', '--packwiz', 'pack', 'client']\n"
