@@ -24,7 +24,18 @@ abstract class FunctionalTestBase {
     static final Path FAKE_JAR = Paths.get(System.getProperty("fake.headlessmc.jar"));
 
     @TempDir
+    Path tempDir;
+
+    /**
+     * The real path of the temporary directory, like Gradle's project directory,
+     * e.g. /private/var instead of /var on macOS, without short names on Windows.
+     */
     Path projectDir;
+
+    @org.junit.jupiter.api.BeforeEach
+    void resolveProjectDir() throws IOException {
+        projectDir = tempDir.toRealPath();
+    }
 
     Path file(String path) {
         return projectDir.resolve(path);
