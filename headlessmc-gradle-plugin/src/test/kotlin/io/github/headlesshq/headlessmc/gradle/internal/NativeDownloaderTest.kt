@@ -15,6 +15,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
 class NativeDownloaderTest {
@@ -24,7 +25,7 @@ class NativeDownloaderTest {
     private lateinit var server: HttpServer
     private val requests = AtomicInteger()
     private lateinit var baseUrl: String
-    private val downloader = NativeDownloader(Logging.getLogger(NativeDownloaderTest::class.java))
+    private val downloader = NativeDownloader(Logging.getLogger(NativeDownloaderTest::class.java), Duration.ofMillis(1))
 
     @BeforeEach
     fun startServer() {
@@ -33,6 +34,23 @@ class NativeDownloaderTest {
             requests.incrementAndGet()
             exchange.sendResponseHeaders(200, CONTENT.size.toLong())
             exchange.responseBody.use { it.write(CONTENT) }
+        }
+        // fails twice like GitHub sometimes does, then works
+        val flaky = AtomicInteger()
+        server.createContext("/download/3.0.0-RC8/headlessmc-launcher-macos-x64") { exchange ->
+            requests.incrementAndGet()
+            if (flaky.incrementAndGet() <= 2) {
+                exchange.sendResponseHeaders(503, -1)
+                exchange.close()
+            } else {
+                exchange.sendResponseHeaders(200, CONTENT.size.toLong())
+                exchange.responseBody.use { it.write(CONTENT) }
+            }
+        }
+        server.createContext("/download/3.0.0-RC8/headlessmc-launcher-macos-arm64") { exchange ->
+            requests.incrementAndGet()
+            exchange.sendResponseHeaders(503, -1)
+            exchange.close()
         }
         server.start()
         baseUrl = "http://127.0.0.1:${server.address.port}/download"
@@ -117,6 +135,23 @@ class NativeDownloaderTest {
         // no digest for this asset, must not take the digest of another asset
         assertNull(NativeDownloader.findDigest(json, "headlessmc-launcher-macos-x64"))
         assertNull(NativeDownloader.findDigest(json, "headlessmc-launcher-windows-x64.exe"))
+    }
+
+    @Test
+    fun serverErrorsAreRetried() {
+        val executable = tempDir.resolve("headlessmc-launcher-macos-x64")
+        downloader.ensure(executable, baseUrl, "3.0.0-RC8", NativePlatform.MACOS_X64, sha256(), false)
+        assertEquals(3, requests.get())
+        assertEquals(String(CONTENT), Files.readString(executable))
+    }
+
+    @Test
+    fun persistentServerErrorsFail() {
+        val e = assertThrows<GradleException> {
+            downloader.ensure(tempDir.resolve("x"), baseUrl, "3.0.0-RC8", NativePlatform.MACOS_ARM64, sha256(), false)
+        }
+        assertTrue(e.message!!.contains("503"), e.message)
+        assertEquals(4, requests.get())
     }
 
     private companion object {
