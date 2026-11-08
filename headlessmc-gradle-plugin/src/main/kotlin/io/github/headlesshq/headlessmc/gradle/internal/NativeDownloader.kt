@@ -18,10 +18,13 @@ import java.util.Locale
 
 /**
  * Downloads the native HeadlessMc executable from a GitHub release and verifies its SHA-256 hash.
+ * An executable is never run unverified: the hash is either given, pinned in the plugin for the
+ * release it was built for, or taken from the GitHub API. If none is available the download fails.
  */
 class NativeDownloader @JvmOverloads constructor(
     private val logger: Logger,
     private val retryDelay: Duration = Duration.ofSeconds(2),
+    private val gitHubToken: String? = System.getenv("GITHUB_TOKEN"),
 ) {
     private val client: HttpClient = HttpClient.newBuilder()
         .followRedirects(HttpClient.Redirect.NORMAL)
@@ -35,7 +38,7 @@ class NativeDownloader @JvmOverloads constructor(
      * @param baseUrl the url the release assets are found under, the version and asset name are appended.
      * @param version the HeadlessMc version.
      * @param platform the platform to download the executable for.
-     * @param expectedSha256 the expected hash, if `null` the hash is taken from the GitHub API.
+     * @param expectedSha256 the expected hash, if `null` the pinned hash or the hash from the GitHub API is used.
      * @param offline if Gradle runs in offline mode.
      */
     fun ensure(
@@ -50,13 +53,17 @@ class NativeDownloader @JvmOverloads constructor(
             throw GradleException("nativeSha256 is not a SHA-256 hash: $expectedSha256")
         }
 
+        val known = expectedSha256 ?: pinnedDigest(baseUrl, version, platform)
+        val sidecar = executable.resolveSibling("${executable.fileName}.sha256")
         if (Files.isRegularFile(executable)) {
-            if (expectedSha256 == null || expectedSha256.equals(sha256(executable), ignoreCase = true)) {
+            // without a known hash, only trust a file if it still matches the hash it was verified with
+            val trusted = known ?: readSidecar(sidecar)
+            if (trusted != null && trusted.equals(sha256(executable), ignoreCase = true)) {
                 makeExecutable(executable)
                 return
             }
 
-            logger.warn("[HeadlessMc] {} does not match nativeSha256, downloading it again.", executable)
+            logger.warn("[HeadlessMc] {} does not match the expected SHA-256 hash, downloading it again.", executable)
         }
 
         if (offline) {
@@ -66,7 +73,12 @@ class NativeDownloader @JvmOverloads constructor(
         }
 
         val url = baseUrl.removeSuffix("/") + "/" + version + "/" + platform.assetName
-        val expected = expectedSha256 ?: gitHubDigest(baseUrl, version, platform)
+        val expected = known ?: gitHubDigest(baseUrl, version, platform)
+            ?: throw GradleException(
+                "Cannot verify the HeadlessMc executable $url: no SHA-256 hash is known for it. " +
+                    "Set nativeSha256 to the hash of the executable, or use the default nativeDownloadUrl " +
+                    "(optionally with a GITHUB_TOKEN in the environment if the GitHub API is rate limited).",
+            )
         try {
             Files.createDirectories(executable.toAbsolutePath().parent)
             val part = executable.resolveSibling("${executable.fileName}.part")
@@ -80,12 +92,13 @@ class NativeDownloader @JvmOverloads constructor(
             }
 
             val actual = sha256(part)
-            if (expected != null && !expected.equals(actual, ignoreCase = true)) {
+            if (!expected.equals(actual, ignoreCase = true)) {
                 Files.deleteIfExists(part)
                 throw GradleException("The SHA-256 hash of $url is $actual, expected $expected")
             }
 
             Files.move(part, executable, StandardCopyOption.REPLACE_EXISTING)
+            Files.writeString(sidecar, actual.lowercase(Locale.ENGLISH))
             makeExecutable(executable)
         } catch (e: IOException) {
             throw GradleException("Failed to download $url", e)
@@ -126,19 +139,32 @@ class NativeDownloader @JvmOverloads constructor(
         }
     }
 
+    private fun pinnedDigest(baseUrl: String, version: String, platform: NativePlatform): String? =
+        if (baseUrl.removeSuffix("/") == GITHUB_RELEASES) PINNED[version]?.get(platform.assetName) else null
+
+    private fun readSidecar(sidecar: Path): String? {
+        return try {
+            Files.readString(sidecar).trim().takeIf { SHA256.matches(it) }
+        } catch (e: IOException) {
+            null
+        }
+    }
+
     private fun gitHubDigest(baseUrl: String, version: String, platform: NativePlatform): String? {
         if (baseUrl.removeSuffix("/") != GITHUB_RELEASES) {
-            logger.warn("[HeadlessMc] Cannot verify the executable downloaded from {}, set nativeSha256.", baseUrl)
             return null
         }
 
         val url = GITHUB_API_RELEASES + version
         try {
-            val request = HttpRequest.newBuilder(URI.create(url))
+            val builder = HttpRequest.newBuilder(URI.create(url))
                 .header("Accept", "application/vnd.github+json")
                 .timeout(Duration.ofMinutes(1))
-                .GET()
-                .build()
+            if (!gitHubToken.isNullOrBlank()) {
+                builder.header("Authorization", "Bearer $gitHubToken")
+            }
+
+            val request = builder.GET().build()
             val response = send(request) { HttpResponse.BodyHandlers.ofString(Charsets.UTF_8) }
             if (response.statusCode() == 200) {
                 findDigest(response.body(), platform.assetName)?.let { return it }
@@ -167,6 +193,19 @@ class NativeDownloader @JvmOverloads constructor(
         private val DIGEST = Regex("\"digest\"\\s*:\\s*\"sha256:([0-9a-fA-F]{64})\"")
         private val SHA256 = Regex("[0-9a-fA-F]{64}")
         private const val ATTEMPTS = 4
+
+        /**
+         * SHA-256 hashes of the executables of the HeadlessMc releases this plugin was built for.
+         */
+        private val PINNED: Map<String, Map<String, String>> = mapOf(
+            "3.0.0-RC8" to mapOf(
+                "headlessmc-launcher-linux-arm64" to "0d5298df7f344b529cb63c1203e8e25ccb0f3bb58d6795e38ad8f3cf6c331dec",
+                "headlessmc-launcher-linux-x64" to "62bbcd85344470bc1c11e08be4eda33ce06aeff2ed2931c87964640d5a733ece",
+                "headlessmc-launcher-macos-arm64" to "fc9d636a715a206e11480869c2ef7e97a9ba919e84d56b376aa301360d105060",
+                "headlessmc-launcher-macos-x64" to "d37e9d206b0245f13f9855c16c3ebb1554542fa694b10bcaacf2afe5b928fb67",
+                "headlessmc-launcher-windows-x64.exe" to "72c42ddd7240f08c79615bbf5e9bef15d209d3e75017f4ef9d9dde9f5028f935",
+            ),
+        )
 
         /**
          * @param releaseJson the json of a release from the GitHub API.

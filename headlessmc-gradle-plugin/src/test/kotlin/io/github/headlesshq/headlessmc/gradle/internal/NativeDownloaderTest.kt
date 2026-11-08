@@ -154,6 +154,43 @@ class NativeDownloaderTest {
         assertEquals(4, requests.get())
     }
 
+    @Test
+    fun unverifiableDownloadFails() {
+        val executable = tempDir.resolve("headlessmc-launcher-linux-x64")
+        val e = assertThrows<GradleException> {
+            downloader.ensure(executable, baseUrl, "3.0.0-RC8", NativePlatform.LINUX_X64, null, false)
+        }
+        assertTrue(e.message!!.contains("nativeSha256"), e.message)
+        assertFalse(Files.exists(executable))
+        assertEquals(0, requests.get())
+    }
+
+    @Test
+    fun pinnedHashIsUsedForTheDefaultUrl() {
+        val executable = tempDir.resolve("headlessmc-launcher-linux-x64")
+        Files.writeString(executable, "tampered")
+        // the pinned hash does not match, so it is downloaded again (and fails as the url is not GitHub's)
+        val e = assertThrows<GradleException> {
+            downloader.ensure(executable, NativeDownloader.GITHUB_RELEASES, "3.0.0-RC8", NativePlatform.LINUX_X64, null, true)
+        }
+        assertTrue(e.message!!.contains("offline"), e.message)
+    }
+
+    @Test
+    fun verifiedHashIsPersisted() {
+        val executable = tempDir.resolve("headlessmc-launcher-linux-x64")
+        downloader.ensure(executable, baseUrl, "3.0.0-RC8", NativePlatform.LINUX_X64, sha256(), false)
+        assertEquals(sha256(), Files.readString(tempDir.resolve("headlessmc-launcher-linux-x64.sha256")))
+        // without a known hash the file is trusted as long as it matches the persisted hash
+        downloader.ensure(executable, baseUrl, "3.0.0-RC8", NativePlatform.LINUX_X64, null, true)
+        assertEquals(1, requests.get())
+        // a modified file is not
+        Files.writeString(executable, "tampered")
+        assertThrows<GradleException> {
+            downloader.ensure(executable, baseUrl, "3.0.0-RC8", NativePlatform.LINUX_X64, null, true)
+        }
+    }
+
     private companion object {
         val CONTENT: ByteArray = "#!/bin/sh\necho headlessmc\n".toByteArray()
     }
