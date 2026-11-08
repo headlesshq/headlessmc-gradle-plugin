@@ -19,7 +19,10 @@ import java.util.Locale
 /**
  * Downloads the native HeadlessMc executable from a GitHub release and verifies its SHA-256 hash.
  */
-class NativeDownloader(private val logger: Logger) {
+class NativeDownloader @JvmOverloads constructor(
+    private val logger: Logger,
+    private val retryDelay: Duration = Duration.ofSeconds(2),
+) {
     private val client: HttpClient = HttpClient.newBuilder()
         .followRedirects(HttpClient.Redirect.NORMAL)
         .connectTimeout(Duration.ofSeconds(30))
@@ -68,10 +71,9 @@ class NativeDownloader(private val logger: Logger) {
             Files.createDirectories(executable.toAbsolutePath().parent)
             val part = executable.resolveSibling("${executable.fileName}.part")
             logger.lifecycle("[HeadlessMc] Downloading {}", url)
-            val response = client.send(
-                HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofMinutes(10)).GET().build(),
-                HttpResponse.BodyHandlers.ofFile(part),
-            )
+            val response = send(HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofMinutes(10)).GET().build()) {
+                HttpResponse.BodyHandlers.ofFile(part)
+            }
             if (response.statusCode() != 200) {
                 Files.deleteIfExists(part)
                 throw GradleException("Failed to download $url: HTTP ${response.statusCode()}")
@@ -93,6 +95,37 @@ class NativeDownloader(private val logger: Logger) {
         }
     }
 
+    /**
+     * Sends the request, retrying on network errors and server errors (5xx, 429), which GitHub returns now and then.
+     */
+    private fun <T> send(request: HttpRequest, bodyHandler: () -> HttpResponse.BodyHandler<T>): HttpResponse<T> {
+        var attempt = 1
+        while (true) {
+            val response = try {
+                client.send(request, bodyHandler())
+            } catch (e: IOException) {
+                if (attempt >= ATTEMPTS) {
+                    throw e
+                }
+
+                logger.warn("[HeadlessMc] Request to {} failed: {}, retrying.", request.uri(), e.toString())
+                null
+            }
+
+            val status = response?.statusCode()
+            if (response != null && (attempt >= ATTEMPTS || (status != 429 && status!! < 500))) {
+                return response
+            }
+
+            if (response != null) {
+                logger.warn("[HeadlessMc] Request to {} failed with HTTP {}, retrying.", request.uri(), status)
+            }
+
+            Thread.sleep(retryDelay.toMillis() * (1L shl (attempt - 1)))
+            attempt++
+        }
+    }
+
     private fun gitHubDigest(baseUrl: String, version: String, platform: NativePlatform): String? {
         if (baseUrl.removeSuffix("/") != GITHUB_RELEASES) {
             logger.warn("[HeadlessMc] Cannot verify the executable downloaded from {}, set nativeSha256.", baseUrl)
@@ -101,14 +134,12 @@ class NativeDownloader(private val logger: Logger) {
 
         val url = GITHUB_API_RELEASES + version
         try {
-            val response = client.send(
-                HttpRequest.newBuilder(URI.create(url))
-                    .header("Accept", "application/vnd.github+json")
-                    .timeout(Duration.ofMinutes(1))
-                    .GET()
-                    .build(),
-                HttpResponse.BodyHandlers.ofString(Charsets.UTF_8),
-            )
+            val request = HttpRequest.newBuilder(URI.create(url))
+                .header("Accept", "application/vnd.github+json")
+                .timeout(Duration.ofMinutes(1))
+                .GET()
+                .build()
+            val response = send(request) { HttpResponse.BodyHandlers.ofString(Charsets.UTF_8) }
             if (response.statusCode() == 200) {
                 findDigest(response.body(), platform.assetName)?.let { return it }
             }
@@ -135,6 +166,7 @@ class NativeDownloader(private val logger: Logger) {
         const val GITHUB_API_RELEASES: String = "https://api.github.com/repos/headlesshq/headlessmc/releases/tags/"
         private val DIGEST = Regex("\"digest\"\\s*:\\s*\"sha256:([0-9a-fA-F]{64})\"")
         private val SHA256 = Regex("[0-9a-fA-F]{64}")
+        private const val ATTEMPTS = 4
 
         /**
          * @param releaseJson the json of a release from the GitHub API.
