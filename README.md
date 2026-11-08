@@ -235,6 +235,38 @@ Alternatively, publish HeadlessMc with `./gradlew publishToMavenLocal -Pversion=
 `mavenLocal()`, see [examples/hmc-plugin](examples/hmc-plugin).
 Plugins can be published to the [HeadlessMc plugin index](https://github.com/headlesshq/headlessmc-plugins).
 
+## Using a JitPack build
+
+Commits of this repository can be used through [JitPack](https://jitpack.io) before they are released:
+
+```groovy
+// settings.gradle
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = 'https://jitpack.io' }
+    }
+    resolutionStrategy {
+        eachPlugin {
+            // JitPack does not publish the plugin markers, so map the plugin ids to the JitPack modules
+            if (requested.id.namespace == 'io.github.headlesshq') {
+                useModule("com.github.headlesshq.headlessmc-gradle-plugin:${requested.id.name}:${requested.version}")
+            }
+        }
+    }
+}
+```
+
+```groovy
+// build.gradle
+plugins {
+    id 'io.github.headlesshq.hmc-plugin-gradle-plugin' version '<commit>'
+}
+```
+
+JitPack builds of HeadlessMc commits work too: `headlessmc { group = 'com.github.headlesshq.headlessmc'; version = '<commit>' }`
+with `maven { url = 'https://jitpack.io' }` in the repositories. They always run on the JVM.
+
 ## Development
 
 ```shell
