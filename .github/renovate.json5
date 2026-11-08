@@ -1,0 +1,70 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    ":enableRenovate",
+    ":semanticCommits",
+    "config:best-practices",
+  ],
+  timezone: "UTC",
+  dependencyDashboard: true,
+  platformCommit: "enabled",
+  prCreation: "not-pending",
+  rebaseWhen: "conflicted",
+  suppressNotifications: ["prIgnoreNotification"],
+  enabledManagers: ["gradle", "gradle-wrapper", "github-actions", "devcontainer", "custom.regex"],
+  // dev_plugin_headlessmc_version (3.0.0-RC9-SNAPSHOT) is intentionally not updated: it is a SNAPSHOT of an
+  // unreleased HeadlessMc that is bumped by hand. The regex below only matches headlessmc_version, and no
+  // build script uses the dev property as a dependency declaration, so Renovate never touches it.
+  customManagers: [
+    {
+      // headlessmc_version is only read through providers.gradleProperty in the build scripts,
+      // so the gradle manager does not see it. The plugins use the io.github.headlesshq:headlessmc-application runner.
+      customType: "regex",
+      managerFilePatterns: ["/^gradle\\.properties$/"],
+      matchStrings: ["^headlessmc_version=(?<currentValue>\\S+)\\s*$"],
+      datasourceTemplate: "maven",
+      depNameTemplate: "io.github.headlesshq:headlessmc-application",
+    },
+  ],
+  packageRules: [
+    {
+      // never update SNAPSHOT versions
+      matchCurrentValue: "/-SNAPSHOT$/",
+      enabled: false,
+    },
+    {
+      matchUpdateTypes: ["major"],
+      addLabels: ["dependency/major"],
+    },
+    {
+      matchUpdateTypes: ["minor"],
+      addLabels: ["dependency/minor"],
+    },
+    {
+      matchUpdateTypes: ["patch"],
+      addLabels: ["dependency/patch"],
+    },
+    {
+      // dependency updates change the published plugins, so they are fixes (release-please releases them)
+      matchManagers: ["gradle", "custom.regex"],
+      semanticCommitType: "fix",
+      semanticCommitScope: "deps",
+    },
+    {
+      matchManagers: ["gradle-wrapper"],
+      semanticCommitType: "build",
+      semanticCommitScope: "deps",
+    },
+    {
+      matchManagers: ["github-actions"],
+      semanticCommitType: "ci",
+      semanticCommitScope: "deps",
+    },
+    {
+      // the devcontainer (added separately) only affects development, not the published plugins
+      matchManagers: ["devcontainer"],
+      semanticCommitType: "chore",
+      semanticCommitScope: "deps",
+    },
+  ],
+}
