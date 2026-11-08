@@ -46,3 +46,9 @@ jobs:
         env:
           HMC_IT_LAUNCH: true
         run: ./gradlew integrationTest --stacktrace
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-reports
+          path: '*/build/reports/tests/'
