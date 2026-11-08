@@ -11,7 +11,7 @@
   prCreation: "not-pending",
   rebaseWhen: "conflicted",
   suppressNotifications: ["prIgnoreNotification"],
-  enabledManagers: ["gradle", "gradle-wrapper", "github-actions", "custom.regex"],
+  enabledManagers: ["gradle", "gradle-wrapper", "github-actions", "devcontainer", "custom.regex"],
   // dev_plugin_headlessmc_version (3.0.0-RC9-SNAPSHOT) is intentionally not updated: it is a SNAPSHOT of an
   // unreleased HeadlessMc that is bumped by hand. The regex below only matches headlessmc_version, and no
   // build script uses the dev property as a dependency declaration, so Renovate never touches it.
@@ -58,6 +58,12 @@
     {
       matchManagers: ["github-actions"],
       semanticCommitType: "ci",
+      semanticCommitScope: "deps",
+    },
+    {
+      // the devcontainer (added separately) only affects development, not the published plugins
+      matchManagers: ["devcontainer"],
+      semanticCommitType: "chore",
       semanticCommitScope: "deps",
     },
   ],
