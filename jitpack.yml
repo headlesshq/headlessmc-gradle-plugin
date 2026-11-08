@@ -1,0 +1,4 @@
+# JitPack builds commits of this repository, e.g. com.github.headlesshq.headlessmc-gradle-plugin:hmc-plugin-gradle-plugin:<commit>,
+# see "Using a JitPack build" in the README
+jdk:
+  - openjdk17
