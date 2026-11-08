@@ -1,0 +1,35 @@
+{
+  "name": "headlessmc-gradle-plugin",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "25",
+      "jdkDistro": "tem",
+      "additionalVersions": "17,21",
+      "installGradle": false
+    }
+  },
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb"
+  },
+  "mounts": [
+    "source=headlessmc-gradle-plugin-gradle,target=/home/vscode/.gradle,type=volume"
+  ],
+  // Set DEVCONTAINER_USER=root when using rootless Docker.
+  "remoteUser": "${localEnv:DEVCONTAINER_USER:vscode}",
+  "containerEnv": {
+    "GRADLE_USER_HOME": "/home/vscode/.gradle"
+  },
+  "onCreateCommand": "bash .devcontainer/on-create.sh",
+  "postCreateCommand": "./gradlew --version",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-gradle",
+        "fwcd.kotlin"
+      ]
+    }
+  }
+}
