@@ -1,8 +1,14 @@
 import java.net.URI
 
+plugins {
+    // publishes the plugins to the Gradle Plugin Portal: ./gradlew publishPlugins, see .github/workflows/release.yml
+    id("com.gradle.plugin-publish") version "2.0.0" apply false
+}
+
 subprojects {
     apply(plugin = "java-gradle-plugin")
     apply(plugin = "maven-publish")
+    apply(plugin = "com.gradle.plugin-publish")
 
     group = rootProject.group
     version = rootProject.version
