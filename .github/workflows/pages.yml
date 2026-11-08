@@ -23,7 +23,7 @@ jobs:
         run: |
           mkdir -p _site
           cp -r headlessmc-gradle-plugin/build/docs/javadoc _site/headlessmc-gradle-plugin
-          cp -r hmc-plugin-gradle-plugin/build/docs/javadoc _site/hmc-plugin-gradle-plugin
+          cp -r headlessmc-dev-plugin/build/docs/javadoc _site/headlessmc-dev-plugin
 
       - name: Upload Web page artifact
         uses: actions/upload-pages-artifact@v3.0.1

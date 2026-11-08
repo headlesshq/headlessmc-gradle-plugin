@@ -1,6 +1,6 @@
 # Multi-project: a HeadlessMc plugin and a mod
 
-* `:platform-plugin` is a HeadlessMc plugin (`io.github.headlesshq.hmc-plugin-gradle-plugin`), it adds `greet`.
+* `:platform-plugin` is a HeadlessMc plugin (`io.github.headlesshq.headlessmc-dev-plugin`), it adds `greet`.
 * `:mod` installs it with `headlessmcPlugins(project(":platform-plugin"))` and runs HeadlessMc with it.
   This is how a mod could use a HeadlessMc plugin, e.g. one adding a platform like Quilt.
 

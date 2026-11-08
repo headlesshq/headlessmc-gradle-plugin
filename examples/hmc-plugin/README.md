@@ -1,7 +1,7 @@
 # A HeadlessMc plugin
 
 The [plugin template](https://github.com/headlesshq/headlessmc-plugin-template) with the
-`io.github.headlesshq.hmc-plugin-gradle-plugin`. It adds the `hello` command, `hello --banner` uses jfiglet,
+`io.github.headlesshq.headlessmc-dev-plugin`. It adds the `hello` command, `hello --banner` uses jfiglet,
 a library nested in the plugin jar.
 
 ```shell
@@ -17,7 +17,7 @@ installed in `run/headlessmc/launcher/plugins`, so `~/.local/share/headlessmc/pl
 
 ## Which HeadlessMc
 
-Plugins need HeadlessMc 3.0.0-RC9, which is not released yet. Until then, the `hmc-plugin-gradle-plugin` uses
+Plugins need HeadlessMc 3.0.0-RC9, which is not released yet. Until then, the `headlessmc-dev-plugin` uses
 `io.github.headlesshq:headlessmc-application:3.0.0-RC9-SNAPSHOT`, plugins built against it are compatible with
 `[3.0.0-RC9,4)`. Either publish the `feat/plugins` branch of HeadlessMc to Maven Local, or include it as a git
 submodule like the [plugin template](https://github.com/headlesshq/headlessmc-plugin-template) does
