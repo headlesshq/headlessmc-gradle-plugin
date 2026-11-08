@@ -7,7 +7,7 @@ Gradle plugins for [HeadlessMc](https://github.com/headlesshq/headlessmc), the c
   Problems with the packaging of your release jar, mixins or mappings only show up with a "real" launcher.
   With this plugin you run your release jar, e.g. in CI, headless, together with
   [mc-runtime-test](https://github.com/headlesshq/mc-runtime-test).
-* **`io.github.headlesshq.hmc-plugin-gradle-plugin`** builds [HeadlessMc plugins](https://headlesshq.github.io/headlessmc/plugins/)
+* **`io.github.headlesshq.headlessmc-dev-plugin`** builds [HeadlessMc plugins](https://headlesshq.github.io/headlessmc/plugins/)
   and runs them with HeadlessMc.
 
 Both use HeadlessMc 3.0.0-RC8 by default and only ever let HeadlessMc place files inside your project.
@@ -177,7 +177,7 @@ servers), `modsDirectory` and `serverPluginsDirectory` are inside it.
 
 ```groovy
 plugins {
-    id 'io.github.headlesshq.hmc-plugin-gradle-plugin' version '1.0.0'
+    id 'io.github.headlesshq.headlessmc-dev-plugin' version '1.0.0'
 }
 
 repositories {
@@ -260,7 +260,7 @@ pluginManagement {
 ```groovy
 // build.gradle
 plugins {
-    id 'io.github.headlesshq.hmc-plugin-gradle-plugin' version '<commit>'
+    id 'io.github.headlesshq.headlessmc-dev-plugin' version '<commit>'
 }
 ```
 

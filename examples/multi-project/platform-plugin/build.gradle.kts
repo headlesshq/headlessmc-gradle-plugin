@@ -1,5 +1,5 @@
 plugins {
-    id("io.github.headlesshq.hmc-plugin-gradle-plugin")
+    id("io.github.headlesshq.headlessmc-dev-plugin")
 }
 
 headlessmcPlugin {
