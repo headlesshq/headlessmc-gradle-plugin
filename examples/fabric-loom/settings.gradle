@@ -1,0 +1,14 @@
+pluginManagement {
+    // Uses the plugin from this repository. In your own project use the published version instead, see the README.
+    includeBuild('../..')
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'fabric-loom'

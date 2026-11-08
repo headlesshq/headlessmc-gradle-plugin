@@ -1,0 +1,86 @@
+plugins {
+	id 'fabric-loom' version "${loom_version}"
+	id 'io.github.headlesshq.headlessmc-gradle-plugin'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	// for HeadlessMc itself
+	mavenCentral()
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"modid" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+// Launches the game like a player would: with the remapped release jar, through a real launcher.
+// Problems with the packaging of the jar, mixins or mappings show up here, but not in Loom's runClient.
+tasks.register('runHeadlessMc', HeadlessMcRunTask) {
+	// copy the release jar into the mods folder, like a Copy task
+	from(remapJar)
+	// Fabric API, from the same dependency the mod is compiled against
+	from(configurations.modRuntimeClasspath) {
+		include("fabric-api-${fabric_version}.jar")
+	}
+	into(modsDirectory)
+
+	minecraftVersion = minecraft_version
+	platform = HmcPlatform.FABRIC
+	loaderVersion = loader_version
+	// Minecraft 1.21.4 needs Java 21, HeadlessMc can also find or download it by itself
+	gameJavaLaunchers.add(javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) })
+}
+
+// For CI: headless, offline and with mc-runtime-test from Modrinth, which joins a world, runs
+// the game tests and quits the game. The build fails if the game crashes.
+tasks.register('runHeadlessMcTest', HeadlessMcRunTask) {
+	from(remapJar)
+	into(modsDirectory)
+	// instead of copying it from the classpath, Fabric API can also be downloaded from Modrinth
+	modrinth 'fabric-api', 'mc-runtime-test'
+
+	minecraftVersion = minecraft_version
+	platform = HmcPlatform.FABRIC
+	headless = true
+	offline = true
+	dummyAssets = true
+	ciOptions()
+	// mc-runtime-test fails if fewer game tests are run
+	gameJvmArgs.add('-DMcRuntimeGameTestMinExpectedGameTests=0')
+}

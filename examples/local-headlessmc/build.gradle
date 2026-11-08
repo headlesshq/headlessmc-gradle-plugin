@@ -1,0 +1,39 @@
+plugins {
+    id 'io.github.headlesshq.headlessmc-gradle-plugin'
+}
+
+repositories {
+    mavenCentral()
+    // HeadlessMc published with ./gradlew publishToMavenLocal in the headlessmc repository
+    mavenLocal()
+}
+
+// Runs a HeadlessMc you built yourself, e.g. to test changes to HeadlessMc.
+// -PheadlessmcJar=<path> to a runner jar, built in the headlessmc repository with
+//   ./gradlew :headlessmc-application:quarkusBuild -PuberJar
+// or the quarkus-app/quarkus-run.jar of a normal build.
+def localJar = providers.gradleProperty('headlessmcJar')
+if (localJar.present) {
+    dependencies {
+        headlessmcRuntime files(localJar.get())
+    }
+
+    headlessmc {
+        distribution = HmcDistribution.JVM
+    }
+}
+
+// -PheadlessmcExecutable=<path> to a native executable, built with scripts/build-native
+def localExecutable = providers.gradleProperty('headlessmcExecutable')
+if (localExecutable.present) {
+    headlessmc {
+        executable = file(localExecutable.get())
+    }
+}
+
+tasks.register('runLocal', HeadlessMcRunTask) {
+    minecraftVersion = '1.21.4'
+    headless = true
+    offline = true
+    dummyAssets = true
+}

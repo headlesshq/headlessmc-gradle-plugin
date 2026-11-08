@@ -1,0 +1,10 @@
+pluginManagement {
+    // Uses the plugin from this repository. In your own project use the published version instead, see the README.
+    includeBuild('../..')
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'hmc-plugin'

@@ -1,0 +1,30 @@
+# Example workflow, copy it to .github/workflows in your mod repository.
+name: Run the game with HeadlessMc
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Java 21 for Minecraft and Loom, Java 25 for HeadlessMc.
+      # Without Java 25 the plugin falls back to the native HeadlessMc executable.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            25
+            21
+      - uses: gradle/actions/setup-gradle@v4
+      # versions, libraries and Java runtimes downloaded by HeadlessMc
+      - uses: actions/cache@v4
+        with:
+          path: |
+            run/headlessmc/mc
+            run/headlessmc/launcher/java
+            run/headlessmc/native
+          key: headlessmc-${{ hashFiles('gradle.properties') }}
+      - run: ./gradlew runHeadlessMcTest --stacktrace

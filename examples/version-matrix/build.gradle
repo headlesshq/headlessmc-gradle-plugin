@@ -1,0 +1,60 @@
+plugins {
+    id 'java'
+    id 'io.github.headlesshq.headlessmc-gradle-plugin'
+}
+
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+}
+
+// One run task per Minecraft version and platform, e.g. runFabric1_21_4.
+// All of them share run/headlessmc/mc, so versions, libraries and assets are only downloaded once,
+// but each gets its own game directory in run/headlessmc/game/<task>.
+def matrix = [
+    [platform: HmcPlatform.FABRIC, versions: ['1.20.4', '1.21.1', '1.21.4']],
+    [platform: HmcPlatform.NEOFORGE, versions: ['1.21.1']],
+    [platform: HmcPlatform.FORGE, versions: ['1.20.1']],
+]
+
+def runTasks = []
+matrix.each { entry ->
+    entry.versions.each { mc ->
+        def name = "run${entry.platform.capitalize()}${mc.replace('.', '_')}"
+        runTasks << tasks.register(name, HeadlessMcRunTask) {
+            description = "Runs ${entry.platform} ${mc} headless with mc-runtime-test."
+            from(jar)
+            into(modsDirectory)
+            modrinth 'mc-runtime-test'
+            if (entry.platform == HmcPlatform.FABRIC) {
+                modrinth 'fabric-api'
+            }
+
+            minecraftVersion = mc
+            platform = entry.platform
+            headless = true
+            offline = true
+            dummyAssets = true
+            ciOptions()
+        }
+    }
+}
+
+tasks.register('runAll') {
+    group = 'headlessmc'
+    description = 'Runs every version of the matrix.'
+    dependsOn runTasks
+}
+
+// HeadlessMc tasks share the launcher directory, run them one after another
+def tasksInOrder = runTasks
+tasksInOrder.eachWithIndex { task, i ->
+    if (i > 0) {
+        task.configure { mustRunAfter tasksInOrder[i - 1] }
+    }
+}
