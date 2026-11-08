@@ -34,6 +34,7 @@ dependencies {
     "functionalTestRuntimeOnly"("org.junit.platform:junit-platform-launcher")
     "functionalTestImplementation"(gradleTestKit())
     "functionalTestImplementation"(sourceSets.main.get().output)
+    "functionalTestImplementation"(project(":headlessmc-gradle-plugin"))
     "functionalTestImplementation"("com.fasterxml.jackson.core:jackson-databind:2.20.0")
 }
 

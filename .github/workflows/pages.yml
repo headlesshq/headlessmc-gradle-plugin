@@ -17,13 +17,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build
-        run: ./gradlew javadoc --stacktrace
+        run: ./gradlew dokkaGeneratePublicationHtml --stacktrace
 
-      - name: Copy javadoc
+      - name: Copy the documentation
         run: |
           mkdir -p _site
-          cp -r headlessmc-gradle-plugin/build/docs/javadoc _site/headlessmc-gradle-plugin
-          cp -r headlessmc-dev-plugin/build/docs/javadoc _site/headlessmc-dev-plugin
+          cp -r headlessmc-gradle-plugin/build/dokka/html _site/headlessmc-gradle-plugin
+          cp -r headlessmc-dev-plugin/build/dokka/html _site/headlessmc-dev-plugin
 
       - name: Upload Web page artifact
         uses: actions/upload-pages-artifact@v3.0.1

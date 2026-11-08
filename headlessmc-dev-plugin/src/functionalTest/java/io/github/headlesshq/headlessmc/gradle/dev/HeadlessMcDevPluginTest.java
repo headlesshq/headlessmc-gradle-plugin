@@ -42,7 +42,8 @@ class HeadlessMcDevPluginTest {
     @BeforeEach
     void setup() throws IOException {
         repository = dir.resolve("repository");
-        project = dir.resolve("project");
+        // the real path, like Gradle's project directory, e.g. /private/var instead of /var on macOS
+        project = dir.toRealPath().resolve("project");
         // HeadlessMc ships commons-lang3 3.21.0, plugins never nest it
         publish(Defaults.GROUP, "headlessmc-application", "1.0.0", "org.apache.commons:commons-lang3:3.21.0");
         publish("org.apache.commons", "commons-lang3", "3.21.0");
@@ -131,7 +132,7 @@ class HeadlessMcDevPluginTest {
         assertEquals("1.2.3", lib.get("version").asText());
         assertEquals("[1.2,3)", lib.get("versions").asText());
         assertEquals("META-INF/jars/lib-1.2.3.jar", lib.get("path").asText());
-        assertEquals(GeneratePluginManifest.sha256(repository.resolve("com/example/lib/1.2.3/lib-1.2.3.jar").toFile()),
+        assertEquals(io.github.headlesshq.headlessmc.gradle.internal.NativeDownloader.sha256(repository.resolve("com/example/lib/1.2.3/lib-1.2.3.jar")),
             lib.get("sha256").asText());
     }
 
