@@ -87,14 +87,3 @@ dependencies {
     include 'com.github.lalyos:jfiglet:0.0.9'   // nested into the plugin jar (Jar-in-Jar)
 }
 ```
-
-## Releasing
-
-Releases are managed by [release-please](https://github.com/googleapis/release-please). Commits to `main` must follow
-[Conventional Commits](https://www.conventionalcommits.org/) (e.g. `feat: ...`, `fix: ...`), since they determine the
-next version and the `CHANGELOG.md`. To release, merge the release-please PR: this updates the version in
-`gradle.properties`, creates the GitHub release and publishes the plugins to the Gradle Plugin Portal.
-If publishing fails, re-run it with the `Publish` workflow and the version to publish.
-
-Note: until 1.0.0 is released, `release-please-config.json` pins the next release with `"release-as": "1.0.0"`.
-Remove that setting after the first release, otherwise release-please keeps proposing 1.0.0.
