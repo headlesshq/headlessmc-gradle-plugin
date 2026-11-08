@@ -1,0 +1,53 @@
+name: Lifecycle
+
+# release-please keeps a release PR up to date on every push to main. Merging that PR bumps the version in
+# gradle.properties, updates CHANGELOG.md, creates the GitHub release and then publishes the plugins to the
+# Gradle Plugin Portal. Needs the repository secrets GRADLE_PUBLISH_KEY and GRADLE_PUBLISH_SECRET,
+# the API key of the Plugin Portal account, see https://plugins.gradle.org/docs/publish-plugin.
+# Releases created with GITHUB_TOKEN do not trigger `release: published` workflows, hence publishing lives here.
+"on":
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+      - uses: actions/setup-java@v4
+        with:
+          java-version: |
+            17
+            25
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Test
+        run: ./gradlew build --stacktrace
+      - name: Publish to the Gradle Plugin Portal
+        env:
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+        run: ./gradlew publishPlugins --stacktrace

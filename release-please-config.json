@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "69966d04e94068e460992bc1b0a823a119c0be7f",
+  "include-v-in-tag": false,
+  "include-component-in-tag": false,
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "package-name": "headlessmc-gradle-plugin",
+      "release-as": "1.0.0",
+      "extra-files": ["gradle.properties"]
+    }
+  }
+}
