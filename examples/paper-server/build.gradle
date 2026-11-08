@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+    id 'io.github.headlesshq.headlessmc-gradle-plugin'
+}
+
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+// Starts a Paper server with the plugin jar of this project.
+// HeadlessMc places servers in run/headlessmc/launcher/server/<name>,
+// serverPluginsDirectory is the plugins folder of that server (not the HeadlessMc plugins).
+tasks.register('runPaper', HeadlessMcRunTask) {
+    from(jar)
+    into(serverPluginsDirectory)
+
+    server = true
+    platform = HmcPlatform.PAPER
+    minecraftVersion = '1.21.4'
+    acceptEula = true
+    gameJvmArgs.add('-Xmx2G')
+}
+
+// A Fabric server with a mod, copied into the mods folder of the server
+tasks.register('runFabricServer', HeadlessMcRunTask) {
+    from(jar)
+    into(modsDirectory)
+    modrinth 'fabric-api'
+
+    server = true
+    platform = HmcPlatform.FABRIC
+    minecraftVersion = '1.21.4'
+    acceptEula = true
+}

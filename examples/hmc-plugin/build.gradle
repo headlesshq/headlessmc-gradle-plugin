@@ -1,0 +1,65 @@
+plugins {
+    // nests the include dependencies into the jar, generates META-INF/headlessmc-plugin.json
+    // and runs the plugin with a HeadlessMc that lives in run/headlessmc
+    id 'io.github.headlesshq.hmc-plugin-gradle-plugin'
+}
+
+repositories {
+    mavenCentral()
+    // Plugins need HeadlessMc 3.0.0-RC9, until it is released the plugin uses 3.0.0-RC9-SNAPSHOT,
+    // published with ./gradlew publishToMavenLocal, see the README
+    mavenLocal()
+}
+
+headlessmcPlugin {
+    // the manifest, META-INF/headlessmc-plugin.json, the version is the project version
+    id = 'example'
+    name = 'Example Plugin'
+    description = 'An example HeadlessMc plugin, adds the hello command.'
+    authors = ['You']
+    license = 'MIT'
+    homepage = 'https://github.com/headlesshq/headlessmc-gradle-plugin/tree/main/examples/hmc-plugin'
+    // the HeadlessMc versions this plugin works with, [3.0.0-RC9,4) by default
+    // headlessmc = '[3.0.0-RC9,4)'
+    // java = 25
+
+    // other plugins this plugin needs
+    // dependency 'other-plugin', '[1.0,2)'
+    // optionalDependency 'another-plugin', '*'
+
+    // included libraries are compatible with [version, nextMajor) by default
+    // libraryVersions 'com.github.lalyos:jfiglet', '[0.0.8,0.1)'
+
+    // HeadlessMc re-builds itself with the plugins from its headlessmc-mutable.zip,
+    // a local HeadlessMc build has to point to its own, -PheadlessmcMutableJar=<path>
+    if (providers.gradleProperty('headlessmcMutableJar').present) {
+        mutableJar = file(providers.gradleProperty('headlessmcMutableJar').get())
+    }
+}
+
+// a local HeadlessMc build to run the plugin with, -PheadlessmcJar=<path to quarkus-app/quarkus-run.jar>
+if (providers.gradleProperty('headlessmcJar').present) {
+    dependencies {
+        headlessmcRuntime files(providers.gradleProperty('headlessmcJar').get())
+    }
+}
+
+dependencies {
+    // nested into the plugin jar (Jar-in-Jar), together with its transitive dependencies,
+    // except for libraries HeadlessMc already contains
+    include 'com.github.lalyos:jfiglet:0.0.9'
+
+    testImplementation platform('org.junit:junit-bom:5.13.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// ./gradlew hello runs the plugin's command
+tasks.register('hello', HeadlessMcExec) {
+    description = 'Runs the hello command of this plugin.'
+    args 'hello', '--banner', 'HeadlessMc'
+}

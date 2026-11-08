@@ -1,91 +1,58 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URI
 
-plugins {
-    kotlin("jvm") version "1.8.21"
-    id("org.jetbrains.dokka") version "1.9.20"
-    `java-gradle-plugin`
-    `maven-publish`
-}
+subprojects {
+    apply(plugin = "java-gradle-plugin")
+    apply(plugin = "maven-publish")
 
-group = "io.github.headlesshq"
-version = "0.4.0"
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-    withSourcesJar()
-}
-
-repositories {
-    mavenCentral()
-    maven {
-        name = "3arthMaven"
-        url = URI("https://3arthqu4ke.github.io/maven")
-    }
-}
-
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation("me.earth.headlessmc:headlessmc-launcher:2.2.0")
-    implementation("me.earth.headlessmc:headlessmc-jline:2.2.0")
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.withType<JavaCompile> {
-    if (JavaVersion.current().isJava9Compatible) {
-        options.release.set(8)
-    }
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-val dokkaJavadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
-    dependsOn(tasks.getByName("dokkaJavadoc"))
-    archiveClassifier.set("javadoc")
-    from(tasks.getByName("dokkaJavadoc").property("outputDirectory"))
-}
-
-gradlePlugin {
-    plugins {
-        create("simplePlugin") {
-            id = "io.github.headlesshq.headlessmc-gradle-plugin"
-            implementationClass = "io.github.headlesshq.headlessmc.gradle.HeadlessMcPlugin"
-        }
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "${project.group}"
-            artifactId = project.base.archivesName.get()
-            version = "${project.version}"
-            from(components.getByName("java"))
-            artifact(dokkaJavadocJar)
-        }
-    }
+    group = rootProject.group
+    version = rootProject.version
 
     repositories {
-        if (System.getenv("DEPLOY_TO_GITHUB_PACKAGES_URL") != null) {
-            maven {
-                name = "GithubPagesMaven"
-                url = URI(System.getenv("DEPLOY_TO_GITHUB_PACKAGES_URL"))
-                credentials {
-                    username = System.getenv("GITHUB_USER")
-                    password = System.getenv("GITHUB_TOKEN")
+        mavenCentral()
+    }
+
+    dependencies {
+        "compileOnly"("org.jspecify:jspecify:1.0.0")
+    }
+
+    extensions.configure<JavaPluginExtension> {
+        withSourcesJar()
+        withJavadocJar()
+    }
+
+    // Gradle 8 and 9 run on Java 17+, HeadlessMc itself is never loaded into Gradle,
+    // it is always started as a separate process.
+    tasks.withType<JavaCompile>().configureEach {
+        options.release.set(17)
+        options.encoding = "UTF-8"
+        options.compilerArgs.addAll(listOf("-Xlint:all", "-Xlint:-serial", "-Xlint:-processing"))
+    }
+
+    tasks.withType<Javadoc>().configureEach {
+        (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
+    }
+
+    tasks.withType<ValidatePlugins>().configureEach {
+        enableStricterValidation.set(true)
+        failOnWarning.set(true)
+    }
+
+    extensions.configure<PublishingExtension> {
+        repositories {
+            if (System.getenv("DEPLOY_TO_GITHUB_PACKAGES_URL") != null) {
+                maven {
+                    name = "GithubPagesMaven"
+                    url = URI(System.getenv("DEPLOY_TO_GITHUB_PACKAGES_URL"))
+                    credentials {
+                        username = System.getenv("GITHUB_USER")
+                        password = System.getenv("GITHUB_TOKEN")
+                    }
                 }
-            }
-        } else {
-            maven {
-                name = "BuildDirMaven"
-                url = rootProject.layout.buildDirectory.dir("maven").get().asFile.toURI()
+            } else {
+                maven {
+                    name = "BuildDirMaven"
+                    url = rootProject.layout.buildDirectory.dir("maven").get().asFile.toURI()
+                }
             }
         }
     }

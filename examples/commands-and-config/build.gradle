@@ -1,0 +1,73 @@
+plugins {
+    id 'io.github.headlesshq.headlessmc-gradle-plugin'
+}
+
+repositories {
+    mavenCentral()
+}
+
+headlessmc {
+    // the HeadlessMc version, defaults to the one the Gradle plugin was released with
+    version = '3.0.0-RC8'
+    // HeadlessMc configuration for every task, see ./gradlew headlessmc --args="config ls"
+    launcherConfig.put('hmc.log.console-level', 'INFO')
+    launcherConfig.put('hmc.java.download', 'true')
+    // the hmc.files.* keys are managed by the plugin, setting them fails the build:
+    // launcherConfig.put('hmc.files.mc', System.getProperty('user.home') + '/.minecraft')
+
+    // JVM arguments for HeadlessMc itself (not the game)
+    jvmArgs.add('-Xmx512m')
+    // all files go here, it has to be inside the build
+    directory = layout.projectDirectory.dir('run/headlessmc')
+}
+
+// Any HeadlessMc command:
+//   ./gradlew headlessmc --args="version list"
+//   ./gradlew headlessmc --args="java list"
+//   ./gradlew headlessmc --args="login"
+//   ./gradlew headlessmc --args="mod search sodium"
+
+// Tasks for commands you run often
+tasks.register('downloadVersions', HeadlessMcExec) {
+    description = 'Downloads the versions used by this project ahead of time, e.g. to warm a CI cache.'
+    args 'download', '1.21.4'
+}
+
+tasks.register('listJava', HeadlessMcExec) {
+    description = 'Lists the Java installations HeadlessMc can use.'
+    args 'java', 'list'
+    // pass the Java installations of the Gradle toolchains to HeadlessMc
+    gameJavaLaunchers.add(javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) })
+}
+
+tasks.register('runConfigured', HeadlessMcRunTask) {
+    minecraftVersion = '1.21.4'
+    platform = HmcPlatform.FABRIC
+    // fabric loader version
+    loaderVersion = '0.16.14'
+    headless = true
+    offline = true
+
+    // HeadlessMc commands run before launching, each one a separate invocation
+    command 'java list'
+    command 'version list'
+    // Modrinth projects, added with "mod add mod <id> fabric 1.21.4"
+    modrinth 'fabric-api', 'sodium'
+
+    // per task configuration, extends headlessmc.launcherConfig
+    launcherConfig.put('hmc.assets.dummy', 'true')
+    // options.txt of the game
+    minecraftOptions.put('renderDistance', '4')
+    minecraftOptions.put('pauseOnLostFocus', 'false')
+
+    gameJvmArgs = ['-Xmx2G', '-Dmy.mod.debug=true']
+    gameArgs = ['--quickPlaySingleplayer', 'New World']
+    retries = 1
+    // a fixed game directory, by default run/headlessmc/game/<task name>
+    gameDirectory = layout.projectDirectory.dir('run/headlessmc/game/shared')
+}
+
+// Complete control over the launch command
+tasks.register('runPackwiz', HeadlessMcRunTask) {
+    launchArgs = ['launch', '--packwiz', 'pack', 'client', '--offline', '--headless']
+}
