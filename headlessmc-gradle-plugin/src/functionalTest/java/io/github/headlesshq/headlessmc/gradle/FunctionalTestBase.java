@@ -56,13 +56,13 @@ abstract class FunctionalTestBase {
      */
     void groovyBuild(String build) {
         write("settings.gradle", "rootProject.name = 'test-project'\n");
-        write("build.gradle", "plugins {\n    id 'io.github.headlesshq.headlessmc-gradle-plugin'\n}\n\n"
+        write("build.gradle", "plugins {\n    id 'io.github.headlesshq.headlessmc'\n}\n\n"
             + fakeRuntime() + "\n" + build);
     }
 
     void kotlinBuild(String build) {
         write("settings.gradle.kts", "rootProject.name = \"test-project\"\n");
-        write("build.gradle.kts", "plugins {\n    id(\"io.github.headlesshq.headlessmc-gradle-plugin\")\n}\n\n"
+        write("build.gradle.kts", "plugins {\n    id(\"io.github.headlesshq.headlessmc\")\n}\n\n"
             + "dependencies {\n    headlessmcRuntime(files(\"" + path(FAKE_JAR) + "\"))\n}\n\n"
             + "headlessmc {\n    distribution.set(io.github.headlesshq.headlessmc.gradle.HmcDistribution.JVM)\n}\n\n" + build);
     }

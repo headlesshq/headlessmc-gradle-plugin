@@ -3,7 +3,7 @@ import io.github.headlesshq.headlessmc.gradle.HmcPlatform
 
 plugins {
     id("net.neoforged.moddev") version "2.0.148"
-    id("io.github.headlesshq.headlessmc-gradle-plugin")
+    id("io.github.headlesshq.headlessmc")
 }
 
 version = "1.0.0"

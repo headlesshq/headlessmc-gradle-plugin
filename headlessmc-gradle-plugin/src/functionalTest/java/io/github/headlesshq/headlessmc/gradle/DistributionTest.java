@@ -44,7 +44,7 @@ class DistributionTest extends FunctionalTestBase {
 
     private void writeBuild(String headlessmc) {
         write("settings.gradle", "rootProject.name = 'test-project'\n");
-        write("build.gradle", "plugins {\n    id 'io.github.headlesshq.headlessmc-gradle-plugin'\n}\n\n"
+        write("build.gradle", "plugins {\n    id 'io.github.headlesshq.headlessmc'\n}\n\n"
             + "headlessmc {\n" + headlessmc + "\n}\n"
             + "tasks.register('runClient', HeadlessMcRunTask) { minecraftVersion = '1.21.4' }\n");
     }

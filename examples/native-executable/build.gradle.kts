@@ -2,7 +2,7 @@ import io.github.headlesshq.headlessmc.gradle.HeadlessMcRunTask
 import io.github.headlesshq.headlessmc.gradle.HmcDistribution
 
 plugins {
-    id("io.github.headlesshq.headlessmc-gradle-plugin")
+    id("io.github.headlesshq.headlessmc")
 }
 
 headlessmc {

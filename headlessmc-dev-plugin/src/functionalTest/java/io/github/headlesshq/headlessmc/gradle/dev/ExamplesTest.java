@@ -63,7 +63,7 @@ class ExamplesTest {
         // replaces HeadlessMc with the fake, without the example knowing about it
         Files.writeString(target.resolve("fake.init.gradle"), """
             allprojects {
-                plugins.withId('io.github.headlesshq.headlessmc-gradle-plugin') {
+                plugins.withId('io.github.headlesshq.headlessmc') {
                     dependencies { headlessmcRuntime files('%s') }
                     def distribution = headlessmc.distribution
                     distribution.set(distribution.type.enumConstants.find { it.name() == 'JVM' })
