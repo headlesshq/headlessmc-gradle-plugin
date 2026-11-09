@@ -88,6 +88,11 @@ dependencies {
 }
 ```
 
+> [!NOTE]
+> Until HeadlessMc 3.0.0-RC9 is on Maven Central, the dev plugin's default HeadlessMc version is
+> `3.0.0-RC9-SNAPSHOT`, which can't be resolved from any public repository. Set `headlessmc.includedBuild`
+> (a local HeadlessMc checkout) or `mutableJar` (see above) until a release switches the default to RC9.
+
 ### Publishing to the plugin index
 `plugin search` and `plugin download` read the `index.json` of
 [headlessmc-plugins](https://github.com/headlesshq/headlessmc-plugins). `./gradlew generatePluginIndexEntry` builds
