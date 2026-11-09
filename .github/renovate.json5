@@ -11,7 +11,11 @@
   prCreation: "not-pending",
   rebaseWhen: "conflicted",
   suppressNotifications: ["prIgnoreNotification"],
-  enabledManagers: ["gradle", "gradle-wrapper", "github-actions", "devcontainer", "custom.regex"],
+  enabledManagers: ["gradle", "gradle-wrapper", "github-actions", "devcontainer", "nix", "custom.regex"],
+  // the nix manager is in beta and disabled by default
+  nix: {
+    enabled: true,
+  },
   // dev_plugin_headlessmc_version (3.0.0-RC9-SNAPSHOT) is intentionally not updated: it is a SNAPSHOT of an
   // unreleased HeadlessMc that is bumped by hand. The regex below only matches headlessmc_version, and no
   // build script uses the dev property as a dependency declaration, so Renovate never touches it.
@@ -52,6 +56,15 @@
     },
     {
       matchManagers: ["gradle-wrapper"],
+      semanticCommitType: "build",
+      semanticCommitScope: "deps",
+    },
+    {
+      // the flake only provides the dev shell, so its inputs are updated together once a month
+      matchManagers: ["nix"],
+      groupName: "nix flake inputs",
+      schedule: ["on the first day of the month"],
+      automerge: false,
       semanticCommitType: "build",
       semanticCommitScope: "deps",
     },
