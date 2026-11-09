@@ -19,6 +19,10 @@ headlessmcPlugin {
     authors = ['You']
     license = 'MIT'
     homepage = 'https://github.com/headlesshq/headlessmc-gradle-plugin/tree/main/examples/hmc-plugin'
+    // for the entry in the plugin index, ./gradlew generatePluginIndexEntry, the download url defaults to
+    // the jar attached to the GitHub release of the version, because the homepage is on github.com
+    // downloadUrl = 'https://example.com/hmc-plugin-1.0.0.jar'
+    // icon = 'https://example.com/icon.png'
     // the HeadlessMc versions this plugin works with, [3.0.0-RC9,4) by default
     // headlessmc = '[3.0.0-RC9,4)'
     // java = 25

@@ -30,6 +30,8 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
  * * `include`: libraries nested into the plugin jar (Jar-in-Jar) under META-INF/jars, with
  *   their transitive dependencies, except for the ones HeadlessMc already contains.
  * * `generatePluginManifest`: writes META-INF/headlessmc-plugin.json.
+ * * `generatePluginIndexEntry`: writes build/headlessmc-plugin/index-entry.json, the entry of the plugin jar
+ *   for the index.json of headlessmc-plugins.
  * * `installPlugin`: installs the plugin jar and the `headlessmcPlugins` into the HeadlessMc of
  *   the project, which lives in `run/headlessmc`.
  * * Applies the [HeadlessMcPlugin], every HeadlessMc task, e.g.
@@ -95,11 +97,12 @@ open class HeadlessMcDevPlugin : Plugin<Project> {
         val nested = includeClasspath.incoming.artifacts.resolvedArtifacts.zip(coreModules, ::withoutCoreModules)
         val nestedFiles = nested.map { artifacts -> artifacts.map { it.file } }
 
+        val pluginVersion = project.provider { project.version.toString() }
         val manifest = project.tasks.register("generatePluginManifest", GeneratePluginManifest::class.java) { task ->
             task.group = "build"
             task.description = "Generates META-INF/${GeneratePluginManifest.FILE_NAME}."
             task.pluginId.set(extension.id)
-            task.pluginVersion.set(project.provider { project.version.toString() })
+            task.pluginVersion.set(pluginVersion)
             task.pluginName.set(extension.name)
             task.pluginDescription.set(extension.description)
             task.authors.set(extension.authors)
@@ -126,6 +129,32 @@ open class HeadlessMcDevPlugin : Plugin<Project> {
         jar.configure { task ->
             task.from(manifest) { it.into("META-INF") }
             task.from(nestedFiles) { it.into(GeneratePluginManifest.JARS_DIR) }
+        }
+
+        val jarFile = jar.flatMap { it.archiveFile }
+        extension.downloadUrl.convention(
+            extension.homepage.zip(pluginVersion) { homepage, version -> homepage to version }
+                .zip(jarFile) { (homepage, version), file ->
+                    GeneratePluginIndexEntry.defaultDownloadUrl(homepage, version, file.asFile.name).orEmpty()
+                }
+                .filter { it.isNotEmpty() },
+        )
+        project.tasks.register("generatePluginIndexEntry", GeneratePluginIndexEntry::class.java) { task ->
+            task.group = "build"
+            task.description = "Generates the entry of the plugin jar for the index.json of headlessmc-plugins."
+            task.pluginId.set(extension.id)
+            task.pluginVersion.set(pluginVersion)
+            task.pluginName.set(extension.name)
+            task.pluginDescription.set(extension.description)
+            task.authors.set(extension.authors)
+            task.license.set(extension.license)
+            task.homepage.set(extension.homepage)
+            task.icon.set(extension.icon)
+            task.headlessmc.set(extension.headlessmc)
+            task.java.set(extension.java)
+            task.downloadUrl.set(extension.downloadUrl)
+            task.jar.set(jarFile)
+            task.output.set(project.layout.buildDirectory.file("headlessmc-plugin/${GeneratePluginIndexEntry.FILE_NAME}"))
         }
 
         project.tasks.withType(JavaCompile::class.java).configureEach { task ->

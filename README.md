@@ -87,3 +87,45 @@ dependencies {
     include 'com.github.lalyos:jfiglet:0.0.9'   // nested into the plugin jar (Jar-in-Jar)
 }
 ```
+
+### Publishing to the plugin index
+`plugin search` and `plugin download` read the `index.json` of
+[headlessmc-plugins](https://github.com/headlesshq/headlessmc-plugins). `./gradlew generatePluginIndexEntry` builds
+the plugin jar and writes `build/headlessmc-plugin/index-entry.json`, the entry for it, with the sha256 and size of
+the jar and the same id, name, description, authors, license, homepage, `headlessmc` range and `java` version as
+`META-INF/headlessmc-plugin.json`:
+
+```json
+{
+  "id": "example",
+  "name": "Example Plugin",
+  "description": "Adds the hello command.",
+  "authors": ["You"],
+  "license": "MIT",
+  "homepage": "https://github.com/you/example-plugin",
+  "downloads": [
+    {
+      "version": "1.0.0",
+      "headlessmc": "[3.0.0-RC9,4)",
+      "java": 25,
+      "url": "https://github.com/you/example-plugin/releases/download/1.0.0/example-plugin-1.0.0.jar",
+      "sha256": "…",
+      "size": 12345
+    }
+  ]
+}
+```
+
+```groovy
+headlessmcPlugin {
+    homepage = 'https://github.com/you/example-plugin'
+    // a github.com homepage defaults to <homepage>/releases/download/<version>/<jar file name>,
+    // otherwise the download url has to be set
+    // downloadUrl = 'https://example.com/example-plugin-1.0.0.jar'
+    // icon = 'https://example.com/icon.png'   // optional
+}
+```
+
+Upload exactly that jar, e.g. to the GitHub release of the version, then open a pull request on headlessmc-plugins:
+if the plugin is not in its `index.json` yet, add the entry to `plugins`, otherwise append the release in
+`downloads` of the entry to the `downloads` of the existing entry (and update its other fields if they changed).

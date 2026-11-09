@@ -13,11 +13,16 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.RecordComponent;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -134,6 +139,92 @@ class HeadlessMcDevPluginTest {
         assertEquals("META-INF/jars/lib-1.2.3.jar", lib.get("path").asText());
         assertEquals(io.github.headlesshq.headlessmc.gradle.internal.NativeDownloader.sha256(repository.resolve("com/example/lib/1.2.3/lib-1.2.3.jar")),
             lib.get("sha256").asText());
+    }
+
+    @Test
+    void generatePluginIndexEntry() throws IOException {
+        buildGradle("""
+            headlessmcPlugin {
+                headlessmcVersion = '1.0.0'
+                id = 'example'
+                name = 'Example'
+                description = 'An example plugin'
+                authors = ['someone']
+                license = 'MIT'
+                homepage = 'https://github.com/owner/example-plugin/tree/main/plugin'
+                icon = 'https://example.com/icon.png'
+            }
+
+            dependencies {
+                include 'com.example:lib:1.2.3'
+            }
+            """);
+        BuildResult result = runner("generatePluginIndexEntry").build();
+        assertEquals(TaskOutcome.SUCCESS, result.task(":jar").getOutcome());
+
+        Path file = project.resolve("build/headlessmc-plugin/index-entry.json");
+        JsonNode json = new ObjectMapper().readTree(file.toFile());
+        assertEquals(List.of("id", "name", "description", "authors", "license", "homepage", "icon", "downloads"), fieldNames(json));
+        assertEquals(componentNames(Entry.class), fieldNames(json));
+        assertEquals(componentNames(Release.class), fieldNames(json.get("downloads").get(0)));
+
+        Entry entry = new ObjectMapper().readValue(file.toFile(), Entry.class);
+        assertEquals("example", entry.id());
+        assertEquals("Example", entry.name());
+        assertEquals("An example plugin", entry.description());
+        assertEquals(List.of("someone"), entry.authors());
+        assertEquals("MIT", entry.license());
+        assertEquals("https://github.com/owner/example-plugin/tree/main/plugin", entry.homepage());
+        assertEquals("https://example.com/icon.png", entry.icon());
+        assertEquals(1, entry.downloads().size());
+
+        Path jar = project.resolve("build/libs/example-plugin-1.0.0.jar");
+        Release release = entry.downloads().get(0);
+        assertEquals("1.0.0", release.version());
+        assertEquals("1.0.0", release.headlessmc());
+        assertEquals(25, release.java());
+        assertEquals("https://github.com/owner/example-plugin/releases/download/1.0.0/example-plugin-1.0.0.jar", release.url());
+        assertEquals(sha256(jar), release.sha256());
+        assertTrue(release.sha256().matches("[0-9a-f]{64}"), release.sha256());
+        assertEquals(Files.size(jar), release.size());
+
+        BuildResult second = runner("generatePluginIndexEntry").build();
+        assertEquals(TaskOutcome.UP_TO_DATE, second.task(":generatePluginIndexEntry").getOutcome());
+    }
+
+    @Test
+    void generatePluginIndexEntryWithDownloadUrl() throws IOException {
+        buildGradle("""
+            headlessmcPlugin {
+                headlessmcVersion = '1.0.0'
+                id = 'example'
+                homepage = 'https://example.com'
+                downloadUrl = 'https://example.com/example-plugin-1.0.0.jar'
+            }
+            """);
+        runner("generatePluginIndexEntry", "--configuration-cache").build();
+        Entry entry = new ObjectMapper().readValue(project.resolve("build/headlessmc-plugin/index-entry.json").toFile(), Entry.class);
+        assertEquals("example", entry.id());
+        assertEquals("example", entry.name());
+        assertEquals(null, entry.description());
+        assertEquals(List.of(), entry.authors());
+        assertEquals(null, entry.icon());
+        assertEquals("https://example.com/example-plugin-1.0.0.jar", entry.downloads().get(0).url());
+    }
+
+    @Test
+    void generatePluginIndexEntryWithoutDownloadUrlFails() throws IOException {
+        buildGradle("""
+            headlessmcPlugin {
+                headlessmcVersion = '1.0.0'
+                id = 'example'
+                homepage = 'https://example.com'
+            }
+            """);
+        BuildResult result = runner("generatePluginIndexEntry").buildAndFail();
+        assertTrue(result.getOutput().contains("Cannot derive the download url of the plugin from the homepage 'https://example.com'"),
+            result.getOutput());
+        assertTrue(result.getOutput().contains("Set headlessmcPlugin.downloadUrl"), result.getOutput());
     }
 
     @Test
@@ -424,6 +515,45 @@ class HeadlessMcDevPluginTest {
              InputStream in = zip.getInputStream(zip.getEntry("META-INF/headlessmc-plugin.json"))) {
             assertEquals(Defaults.COMPATIBLE, new ObjectMapper().readTree(in).get("headlessmc").asText());
         }
+    }
+
+    private static List<String> fieldNames(JsonNode node) {
+        List<String> names = new ArrayList<>();
+        node.fieldNames().forEachRemaining(names::add);
+        return names;
+    }
+
+    private static List<String> componentNames(Class<? extends Record> type) {
+        return Arrays.stream(type.getRecordComponents()).map(RecordComponent::getName).toList();
+    }
+
+    private static String sha256(Path file) throws IOException {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * A copy of {@code PluginIndex.Entry} of headlessmc-plugins (headlessmc feat/plugins).
+     */
+    record Entry(
+        String id,
+        String name,
+        String description,
+        List<String> authors,
+        String license,
+        String homepage,
+        String icon,
+        List<Release> downloads
+    ) {
+    }
+
+    /**
+     * A copy of {@code PluginIndex.Release} of headlessmc-plugins (headlessmc feat/plugins).
+     */
+    record Release(String version, String headlessmc, Integer java, String url, String sha256, Long size) {
     }
 
     private static String fakeRuntime() {
