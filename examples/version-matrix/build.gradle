@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'io.github.headlesshq.headlessmc-gradle-plugin'
+    id 'io.github.headlesshq.headlessmc'
 }
 
 version = '1.0.0'

@@ -1,7 +1,7 @@
 import io.github.headlesshq.headlessmc.gradle.HeadlessMcRunTask
 
 plugins {
-    id("io.github.headlesshq.headlessmc-gradle-plugin")
+    id("io.github.headlesshq.headlessmc")
 }
 
 repositories {

@@ -90,7 +90,7 @@ class ProjectScopeFunctionalTest extends FunctionalTestBase {
     void subprojectsMayShareADirectoryInTheRootProject() {
         write("settings.gradle", "rootProject.name = 'root'\ninclude 'fabric', 'neoforge'\n");
         write("build.gradle", "");
-        String sub = "plugins { id 'io.github.headlesshq.headlessmc-gradle-plugin' }\n" + fakeRuntime()
+        String sub = "plugins { id 'io.github.headlesshq.headlessmc' }\n" + fakeRuntime()
             + "headlessmc { directory = rootProject.layout.projectDirectory.dir('run/headlessmc') }\n"
             + "tasks.register('runClient', HeadlessMcRunTask) { minecraftVersion = '1.21.4'; platform = project.name }\n";
         write("fabric/build.gradle", sub);

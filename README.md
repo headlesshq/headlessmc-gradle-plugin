@@ -21,7 +21,7 @@ Gradle plugins for [HeadlessMc](https://github.com/headlesshq/headlessmc), the c
 
 ```groovy
 plugins {
-    id 'io.github.headlesshq.headlessmc-gradle-plugin' version '1.0.0' // x-release-please-version
+    id 'io.github.headlesshq.headlessmc' version '1.0.0' // x-release-please-version
 }
 
 tasks.register('runHeadlessMc', HeadlessMcRunTask) {
