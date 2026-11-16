@@ -8,7 +8,7 @@ repositories {
 
 headlessmc {
     // the HeadlessMc version, defaults to the one the Gradle plugin was released with
-    version = '3.0.0-RC8'
+    version = '3.0.0-RC9'
     // HeadlessMc configuration for every task, see ./gradlew headlessmc --args="config ls"
     launcherConfig.put('hmc.log.console-level', 'INFO')
     launcherConfig.put('hmc.java.download', 'true')

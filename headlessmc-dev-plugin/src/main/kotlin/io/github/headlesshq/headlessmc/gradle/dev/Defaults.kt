@@ -4,7 +4,8 @@ import java.util.Properties
 
 /**
  * The HeadlessMc plugins are built against by default.
- * Until HeadlessMc 3.0.0-RC9 is released, this is a snapshot, e.g. a local build or an included build.
+ * HeadlessMc 3.0.0-RC9 is the first version supporting plugins.
+ * This can be a snapshot of an unreleased HeadlessMc, e.g. a local build or an included build.
  */
 internal object Defaults {
     private val properties: Properties = Properties().apply {

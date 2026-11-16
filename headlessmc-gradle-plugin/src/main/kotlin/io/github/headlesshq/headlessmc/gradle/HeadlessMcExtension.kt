@@ -15,7 +15,7 @@ import org.gradle.jvm.toolchain.JavaLauncher
  */
 abstract class HeadlessMcExtension {
     /**
-     * The HeadlessMc version, e.g. `3.0.0-RC8`.
+     * The HeadlessMc version, e.g. `3.0.0-RC9`.
      */
     abstract val version: Property<String>
 

@@ -118,7 +118,7 @@ class DistributionTest extends FunctionalTestBase {
         // no repositories
         writeBuild("    distribution = HmcDistribution.JVM");
         BuildResult result = buildAndFail("runClient");
-        assertTrue(result.getOutput().contains("io.github.headlesshq:headlessmc-application:3.0.0-RC8:runner could not be resolved"),
+        assertTrue(result.getOutput().contains("io.github.headlesshq:headlessmc-application:3.0.0-RC9:runner could not be resolved"),
             result.getOutput());
         assertTrue(result.getOutput().contains("mavenCentral()"), result.getOutput());
     }
@@ -132,7 +132,7 @@ class DistributionTest extends FunctionalTestBase {
             + "    doLast { result.root.dependencies.each { println \"RUNTIME ${it.requested.displayName}\" } }\n"
             + "}\n");
         BuildResult result = build("printRuntime");
-        assertTrue(result.getOutput().contains("RUNTIME io.github.headlesshq:headlessmc-application:3.0.0-RC8"),
+        assertTrue(result.getOutput().contains("RUNTIME io.github.headlesshq:headlessmc-application:3.0.0-RC9"),
             result.getOutput());
     }
 
