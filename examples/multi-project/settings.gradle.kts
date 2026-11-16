@@ -10,8 +10,6 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        // HeadlessMc 3.0.0-RC9-SNAPSHOT, see the README of the hmc-plugin example
-        mavenLocal()
     }
 }
 

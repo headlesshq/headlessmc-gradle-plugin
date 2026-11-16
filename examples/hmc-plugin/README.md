@@ -17,16 +17,16 @@ installed in `run/headlessmc/launcher/plugins`, so `~/.local/share/headlessmc/pl
 
 ## Which HeadlessMc
 
-Plugins need HeadlessMc 3.0.0-RC9, which is not released yet. Until then, the `headlessmc-dev-plugin` uses
-`io.github.headlesshq:headlessmc-application:3.0.0-RC9-SNAPSHOT`, plugins built against it are compatible with
-`[3.0.0-RC9,4)`. Either publish the `feat/plugins` branch of HeadlessMc to Maven Local, or include it as a git
-submodule like the [plugin template](https://github.com/headlesshq/headlessmc-plugin-template) does
-(`headlessmc.includedBuild`, see the [README](../../README.md#writing-headlessmc-plugins)).
+Plugins need HeadlessMc 3.0.0-RC9 or newer. By default, the `headlessmc-dev-plugin` compiles against and runs
+`io.github.headlesshq:headlessmc-application:3.0.0-RC9` from Maven Central, plugins built against it are compatible
+with `[3.0.0-RC9,4)`. Set `headlessmc.version` for another release.
+
+To run the plugin with a HeadlessMc you built yourself, pass its jar and its mutable jar, or include the HeadlessMc
+repository as a build (`headlessmc.includedBuild`, e.g. a git submodule), which also compiles the plugin against it:
 
 ```shell
-# in the headlessmc repository, branch feat/plugins
-./gradlew publishToMavenLocal -Pversion=3.0.0-RC9-SNAPSHOT
-./gradlew :headlessmc-application:quarkusBuild :headlessmc-application:mutableJarZip -PmutableJar -Pversion=3.0.0-RC9-SNAPSHOT
+# in the headlessmc repository
+./gradlew :headlessmc-application:quarkusBuild :headlessmc-application:mutableJarZip -PmutableJar
 # here
 ./gradlew hello \
   -PheadlessmcJar=../../../headlessmc/headlessmc-application/build/quarkus-app/quarkus-run.jar \

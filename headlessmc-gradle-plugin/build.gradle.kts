@@ -57,7 +57,7 @@ gradlePlugin {
     testSourceSets(functionalTest, integrationTest)
     plugins {
         create("headlessmc") {
-            id = "io.github.headlesshq.headlessmc-gradle-plugin"
+            id = "io.github.headlesshq.headlessmc"
             implementationClass = "io.github.headlesshq.headlessmc.gradle.HeadlessMcPlugin"
             displayName = "HeadlessMc"
             description = project.description

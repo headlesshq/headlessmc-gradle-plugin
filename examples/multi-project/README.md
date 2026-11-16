@@ -11,7 +11,8 @@ Both share `run/headlessmc` in the root project.
 ./gradlew :mod:runClient
 ```
 
-Like the `hmc-plugin` example, this needs a HeadlessMc with plugin support, see its README for a local build:
+Like the `hmc-plugin` example, this runs HeadlessMc 3.0.0-RC9 from Maven Central by default.
+To use a local HeadlessMc build instead, see its README:
 
 ```shell
 ./gradlew :mod:greet \

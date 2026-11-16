@@ -31,7 +31,7 @@ class RealHeadlessMcTest {
 
     private void build(String distribution, String extra) throws IOException {
         write("settings.gradle", "rootProject.name = 'it'\n");
-        write("build.gradle", "plugins { id 'io.github.headlesshq.headlessmc-gradle-plugin' }\n"
+        write("build.gradle", "plugins { id 'io.github.headlesshq.headlessmc' }\n"
             + "repositories { mavenCentral() }\n"
             + "headlessmc {\n"
             + "    version = '" + System.getProperty("headlessmc.version") + "'\n"

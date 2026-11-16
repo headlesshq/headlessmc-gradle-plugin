@@ -16,16 +16,15 @@
   nix: {
     enabled: true,
   },
-  // dev_plugin_headlessmc_version (3.0.0-RC9-SNAPSHOT) is intentionally not updated: it is a SNAPSHOT of an
-  // unreleased HeadlessMc that is bumped by hand. The regex below only matches headlessmc_version, and no
-  // build script uses the dev property as a dependency declaration, so Renovate never touches it.
   customManagers: [
     {
-      // headlessmc_version is only read through providers.gradleProperty in the build scripts,
-      // so the gradle manager does not see it. The plugins use the io.github.headlesshq:headlessmc-application runner.
+      // headlessmc_version and dev_plugin_headlessmc_version are only read through providers.gradleProperty
+      // in the build scripts, so the gradle manager does not see them. The plugins use the
+      // io.github.headlesshq:headlessmc-application runner. If dev_plugin_headlessmc_version is a SNAPSHOT
+      // of an unreleased HeadlessMc, it is bumped by hand, see the packageRules.
       customType: "regex",
       managerFilePatterns: ["/^gradle\\.properties$/"],
-      matchStrings: ["^headlessmc_version=(?<currentValue>\\S+)\\s*$"],
+      matchStrings: ["^(?:dev_plugin_)?headlessmc_version=(?<currentValue>\\S+)\\s*$"],
       datasourceTemplate: "maven",
       depNameTemplate: "io.github.headlesshq:headlessmc-application",
     },

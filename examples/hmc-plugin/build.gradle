@@ -6,9 +6,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    // Plugins need HeadlessMc 3.0.0-RC9, until it is released the plugin uses 3.0.0-RC9-SNAPSHOT,
-    // published with ./gradlew publishToMavenLocal, see the README
-    mavenLocal()
 }
 
 headlessmcPlugin {
