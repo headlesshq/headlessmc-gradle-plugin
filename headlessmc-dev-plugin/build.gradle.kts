@@ -48,7 +48,7 @@ gradlePlugin {
             implementationClass = "io.github.headlesshq.headlessmc.gradle.dev.HeadlessMcDevPlugin"
             displayName = "HeadlessMc Dev"
             description = project.description
-            tags.addAll("headlessmc", "minecraft", "plugin", "jar-in-jar")
+            tags.addAll("headlessmc", "minecraft", "development", "jar-in-jar")
         }
     }
 }
