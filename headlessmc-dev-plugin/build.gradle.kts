@@ -1,5 +1,4 @@
-description = "Builds HeadlessMc plugins: nests libraries into the plugin jar (Jar-in-Jar), generates the plugin " +
-    "manifest and runs the plugin with a HeadlessMc scoped to the project."
+description = "Helps with building HeadlessMc plugins"
 
 val functionalTest: SourceSet = sourceSets.create("functionalTest")
 
