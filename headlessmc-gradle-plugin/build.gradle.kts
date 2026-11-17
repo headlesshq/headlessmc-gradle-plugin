@@ -1,4 +1,4 @@
-description = "Runs Minecraft with the HeadlessMc launcher, scoped to the Gradle project."
+description = "Run and test Minecraft through a production launcher"
 
 val functionalTest: SourceSet = sourceSets.create("functionalTest")
 val integrationTest: SourceSet = sourceSets.create("integrationTest")
